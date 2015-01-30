@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialPort101Test", "Serial
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialPortUI101", "SerialPortUI101\SerialPortUI101.csproj", "{85D0CFD1-9361-426D-BE6F-13290DF6926C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SerialReader", "SerialReader\SerialReader.csproj", "{05B1AC40-9104-4EB5-AE32-BBB9F77F87B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{85D0CFD1-9361-426D-BE6F-13290DF6926C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{85D0CFD1-9361-426D-BE6F-13290DF6926C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{85D0CFD1-9361-426D-BE6F-13290DF6926C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05B1AC40-9104-4EB5-AE32-BBB9F77F87B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05B1AC40-9104-4EB5-AE32-BBB9F77F87B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05B1AC40-9104-4EB5-AE32-BBB9F77F87B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05B1AC40-9104-4EB5-AE32-BBB9F77F87B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

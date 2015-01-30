@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO.Ports;
+using Me.Venj;
 
 namespace SerialPortUI101
 {
@@ -23,7 +24,10 @@ namespace SerialPortUI101
             {
                 serialPortsComboBox.Items.Add(port);
             }
-            
+            if (ports.Count() < 2)
+            {
+                MessageBox.Show("少于2个COM口，无法通讯。");
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

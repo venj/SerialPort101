@@ -10,7 +10,7 @@ namespace SerialPost101
 {
     public class Program {
         static void Main(string[] args) {
-            sendToOthers();
+            sendToSelf();
         }
 
         public static void sendToOthers()
