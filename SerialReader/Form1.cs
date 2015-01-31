@@ -20,22 +20,22 @@ namespace SerialReader
         {
             InitializeComponent();
 
-            // 初始化端口列表
-            string[] ports = SerialPort.GetPortNames();
-            foreach (var port in ports)
-            {
-                portsBox.Items.Add(port);
-            }
             portsBox.SelectedIndexChanged += new EventHandler(portsBox_SelectedIndexChanged);
+            portsBox.DropDown += new EventHandler(portsBox_DropDown);
 
-            // 波特率默认选择4800。 // BaudRate
-            rateBox.SelectedIndex = 5;
+            // 波特率默认选择9600。 // BaudRate
+            rateBox.SelectedIndex = 6;
             // 校验位默认选择None。 // Parity
             parityBox.SelectedIndex = 2;
             // 数据位默认选8。      // DataBit
             dataBitsBox.SelectedIndex = 3;
             // 停止位              // StopBits
             stopBitsBox.SelectedIndex = 0;
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            loadPortList();
         }
 
         private void openCloseButton_Click(object sender, EventArgs e)
@@ -87,6 +87,11 @@ namespace SerialReader
         }
 
         /**  Event Handlers  **/
+
+        private void portsBox_DropDown(object sender, EventArgs e)
+        {
+            loadPortList();
+        }
 
         private void portsBox_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -152,33 +157,47 @@ namespace SerialReader
             }
             else
             {
-                string readString = "";
-                do
+                byte[] readBytes = {0x00};
+                try
                 {
-                    try
-                    {
-                        readString = port.ReadLine();
-                    }
-                    catch (TimeoutException)
-                    {
-                        MessageBox.Show("数据读取超时。");
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        MessageBox.Show("非法操作。");
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("未知错误。");
-                    }
-                } while (readString.Length == 0);
+                    port.Read(readBytes, 0, 1);
+                }
+                catch (TimeoutException)
+                {
+                    MessageBox.Show("数据读取超时。");
+                }
+                catch (InvalidOperationException)
+                {
+                    MessageBox.Show("非法操作。");
+                    throw;
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("未知错误。");
+                }
+                StringBuilder sb = new StringBuilder();
+                foreach (var b in readBytes)
+                {
+                    sb.AppendFormat("{0:X2} ", b);
+                }
 
-                this.UIThread(() => this.dataOutputBox.Text += readString + "\r\n");
+                this.UIThread(() => this.dataOutputBox.Text += sb.ToString());
             }
             
         }
 
         /**  Helpers  **/
+
+        private void loadPortList()
+        {
+            // 初始化端口列表
+            string[] ports = SerialPort.GetPortNames();
+            portsBox.Items.Clear();
+            foreach (var port in ports)
+            {
+                portsBox.Items.Add(port);
+            }
+        }
 
         private void openPortWithName(string portName)
         {
@@ -200,12 +219,21 @@ namespace SerialReader
             else
             {
                 p = new SerialPort(portName);
-                p.Open();
                 p.BaudRate = Convert.ToInt32(rateBox.Text);
                 p.Parity = translateStringToParity(parityBox.Text);
                 p.DataBits = Convert.ToInt32(dataBitsBox.Text);
                 p.StopBits = translateStringToStopBits(stopBitsBox.Text);
                 p.DataReceived += new SerialDataReceivedEventHandler(serialPortDataReceived);
+                try
+                {
+                    p.Open();
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    MessageBox.Show("端口被占用。");
+                    return;
+                    //throw;
+                }
                 portsList.Add(p);
                 logBox.Text += portName + "已打开。" + "共打开了" + portsList.Count + "个串口。\r\n";
                 openCloseButton.Text = "关闭";
@@ -302,24 +330,8 @@ namespace SerialReader
 
         private void sendMessage(SerialPort from, SerialPort to, object obj)
         {
-            Random rand = new Random();
-            int number = rand.Next();
-            if (number % 2 == 0)
-            {
-                string message = obj.ToString();
-                if (message.Length == 0)
-                {
-                    return;
-                }
-                byte[] writeData;
-                writeData = Encoding.Unicode.GetBytes(message);
-                string convertedString = Convert.ToBase64String(writeData);
-                from.WriteLine(convertedString);
-            }
-            else
-            {
-                from.WriteLine("1024");
-            }
+            byte[] dataBytes = {0xFF};
+            from.Write(dataBytes, 0, dataBytes.Count());
         }
     }
 
