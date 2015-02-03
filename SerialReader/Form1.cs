@@ -11,10 +11,110 @@ using System.IO.Ports;
 
 namespace SerialReader
 {
+    class Signal
+    {
+        public enum SignalType
+        {
+            ArcStart = 0,
+            ArcEnd,
+            SolderStart,
+            SolderEnd,
+            Acceleration,
+            Deceleration,
+            RevolveStart,
+            RevolveEnd,
+            Unknown = Int32.MaxValue
+        }
+
+        private DateTime timestamp;
+        private byte[] rawBytes;
+
+        public SignalType Type 
+        {
+            get
+            {
+                byte typeByte = rawBytes[3];
+                SignalType t = SignalType.Unknown;
+                switch (typeByte)
+                {
+                    case 0x08:
+                        t = SignalType.ArcStart;
+                        break;
+                    case 0x10:
+                        t = SignalType.ArcEnd;
+                        break;
+                    case 0x04:
+                        t = (rawBytes[4] == 0x00) ? SignalType.ArcStart : t = SignalType.Acceleration;
+                        break;
+                    case 0x02:
+                        t = (rawBytes[4] == 0x00) ? SignalType.ArcEnd : t = SignalType.Deceleration;
+                        break;
+                    case 0x40:
+                        t = SignalType.RevolveStart;
+                        break;
+                    case 0x20:
+                        t = SignalType.RevolveEnd;
+                        break;
+                    default:
+                        t = SignalType.Unknown;
+                        break;
+                }
+                return t;
+            }
+        }
+
+        public int Step
+        {
+            get
+            {
+                if (Type == SignalType.Acceleration)
+                {
+                    return rawBytes[4];
+                }
+                else
+                {
+                    return -1;
+                }
+            }
+        }
+
+        public DateTime Timestamp 
+        {
+            get
+            {
+                return timestamp;
+            }
+        }
+
+        public Signal(byte[] rawBytes, DateTime timestamp)
+        {
+            this.rawBytes = rawBytes;
+            this.timestamp = timestamp;
+        }
+
+        public Signal(byte[] rawBytes) : this(rawBytes, DateTime.Now) { }
+
+        public bool isValid()
+        {
+            if ((rawBytes[1] ^ rawBytes[2] ^ rawBytes[3] ^ rawBytes[4]) == rawBytes[5])
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public override string ToString()
+        {
+            return this.Type.ToString() + " " + ((this.Step != int.MaxValue) ? -1 : this.Step) + " " + (this.isValid() ? "Valid signal" : "Invalid signal");
+        }
+    }
+
     public partial class Form1 : Form
     {
 
         private List<SerialPort> portsList = new List<SerialPort>();
+        private List<byte> signalBuffer = new List<byte>(6);
+        private DateTime timestamp = DateTime.Now;
 
         public Form1()
         {
@@ -112,78 +212,65 @@ namespace SerialReader
         {
             SerialPort port = (SerialPort)sender;
             bool isBase64 = base64CheckBox.Checked;
-            if (isBase64)
+            
+            byte[] readBytes = {0x00};
+            try
             {
-                byte[] data = {};
-                do
-                {
-                    string readLine;
-                    try
-                    {
-                        readLine = port.ReadLine();
-                        try
-                        {
-                            data = Convert.FromBase64String(readLine);
-                        }
-                        catch (FormatException)
-                        {
-                            MessageBox.Show("非法的Base64字符串。");
-                        }
-                        catch (ArgumentNullException)
-                        {
-                            MessageBox.Show("Base64字符串不能为空。");
-                        }
-                        catch (Exception)
-                        {
-                            MessageBox.Show("未知错误。");
-                        }
-                    }
-                    catch (TimeoutException)
-                    {
-                        MessageBox.Show("数据读取超时。");
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        MessageBox.Show("非法操作。");
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("未知错误。");
-                    }
-                } while (data.Count() == 0);
+                port.Read(readBytes, 0, 1);
+            }
+            catch (TimeoutException)
+            {
+                MessageBox.Show("数据读取超时。");
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("非法操作。");
+                throw;
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("未知错误。");
+            }
 
-                string destination = Encoding.Unicode.GetString(data);
-                this.UIThread(() => this.dataOutputBox.Text += destination + "\r\n");
+            byte b = readBytes[0];
+            if (signalBuffer.Count() == 6 && b == 0xFF) // Signal start
+            {
+                timestamp = DateTime.Now; // Save TimeStamp for signal start.
+                signalBuffer.Clear();
+                signalBuffer.Add(b);
+            }
+            else if (signalBuffer.Count() < 6) // Signal continue 
+            {
+                signalBuffer.Add(b);
             }
             else
             {
-                byte[] readBytes = {0x00};
-                try
+                // Do nothing.
+            }
+
+            if (signalBuffer.Count() == 6) // Signal catch finished.
+            {
+                Signal signal = new Signal(signalBuffer.ToArray(), timestamp);
+                string message = "";
+
+                if (signal.isValid())
                 {
-                    port.Read(readBytes, 0, 1);
+                    if (signal.Step != int.MaxValue)
+                    {
+                        message = signal.Type.ToString() + " step " + signal.Step + " detected.\r\n";
+                    }
+                    else
+                    {
+                        message = signal.Type.ToString() + " detected.\r\n";
+                    }
                 }
-                catch (TimeoutException)
+                else
                 {
-                    MessageBox.Show("数据读取超时。");
-                }
-                catch (InvalidOperationException)
-                {
-                    MessageBox.Show("非法操作。");
-                    throw;
-                }
-                catch (Exception)
-                {
-                    MessageBox.Show("未知错误。");
-                }
-                StringBuilder sb = new StringBuilder();
-                foreach (var b in readBytes)
-                {
-                    sb.AppendFormat("{0:X2} ", b);
+                    message = "Invalid signal: " + signal.Type.ToString() + " step " + signal.Step + " detected.\r\n"; 
                 }
 
-                this.UIThread(() => this.dataOutputBox.Text += sb.ToString());
+                this.UIThread(() => this.dataOutputBox.Text += message);
             }
-            
         }
 
         /**  Helpers  **/
