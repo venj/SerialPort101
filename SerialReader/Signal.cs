@@ -5,6 +5,7 @@ using System.Text;
 
 namespace SerialReader
 {
+    // Signal reading from chip
     class Signal
     {
         public enum SignalType
