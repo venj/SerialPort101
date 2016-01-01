@@ -1,4 +1,5 @@
 ﻿using System;
+using static System.Console;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Linq;
@@ -19,8 +20,8 @@ namespace SerialPost101
             string[] spNames = SerialPort.GetPortNames();
             if (spNames.Count() < 2)
             {
-                Console.WriteLine("No serial ports found!!!");
-                Console.ReadLine();
+                WriteLine("No serial ports found!!!");
+                ReadLine();
                 return;
             }
             sp.PortName = spNames[1];
@@ -37,7 +38,7 @@ namespace SerialPost101
             writeData = Encoding.Unicode.GetBytes("Hello world.");
             string convertedString = Convert.ToBase64String(writeData);
             sp.WriteLine(convertedString);
-            Console.WriteLine("Message Sent!");
+            WriteLine("Message Sent!");
 
 
             byte[] data;
@@ -47,8 +48,8 @@ namespace SerialPost101
             } while (data.Count() == 0);
 
             string result = Encoding.Unicode.GetString(data);
-            Console.WriteLine("Message Received!");
-            Console.WriteLine(result);
+            WriteLine("Message Received!");
+            WriteLine(result);
             sp.Close();
             sp2.Close();
             Helper.Pause();
@@ -60,8 +61,8 @@ namespace SerialPost101
             string[] spNames = SerialPort.GetPortNames();
             if (spNames.Count() == 0)
             {
-                Console.WriteLine("No serial ports found!!!");
-                Console.ReadLine();
+                WriteLine("No serial ports found!!!");
+                ReadLine();
                 return;
             }
             sp.PortName = spNames[0];
@@ -71,7 +72,7 @@ namespace SerialPost101
             writeData = Encoding.Unicode.GetBytes("Hello world.");
             string convertedString = Convert.ToBase64String(writeData);
             sp.WriteLine(convertedString);
-            Console.WriteLine("Message Sent!");
+            WriteLine("Message Sent!");
 
             byte[] data;
             do
@@ -80,8 +81,8 @@ namespace SerialPost101
             } while (data.Count() == 0);
 
             string result = Encoding.Unicode.GetString(data);
-            Console.WriteLine("Message Received!");
-            Console.WriteLine(result);
+            WriteLine("Message Received!");
+            WriteLine(result);
             sp.Close();
             Helper.Pause();
         }
