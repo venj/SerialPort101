@@ -65,7 +65,7 @@ namespace SerialPost101
                 ReadLine();
                 return;
             }
-            sp.PortName = spNames[0];
+            sp.PortName = spNames[1];
             sp.BaudRate = 4800;
             sp.Open();
             byte[] writeData;

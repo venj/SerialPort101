@@ -318,7 +318,7 @@ namespace SerialReader
 
         private void sendMessage(SerialPort from, SerialPort to, object obj)
         {
-            byte[] dataBytes = {0xFF};
+            byte[] dataBytes = {0x08};
             from.Write(dataBytes, 0, dataBytes.Count());
         }
     }

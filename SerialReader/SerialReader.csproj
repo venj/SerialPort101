@@ -51,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>3F7E08EEE10E2C6010EFF1921ADB9964EB3A04F6</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>099DEED7442D7C7A0BE15926A2DA03C98BCB0B43</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>SerialReader_TemporaryKey.pfx</ManifestKeyFile>
@@ -133,6 +133,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <None Include="SerialReader_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
